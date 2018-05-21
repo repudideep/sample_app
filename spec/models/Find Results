@@ -1,0 +1,12 @@
+Searching 201 files for "it.subject"
+
+/Users/pradeepre/rails_projects/sample_app/spec/models/user_spec.rb:
+  152        end
+  153  
+  154:       expect(subject.feed) { should include(newer_micropost) }
+  155:       expect(subject.feed) { should include(older_micropost) }
+  156:       expect(subject.feed) { should_not include(unfollowed_post) }
+  157      end
+  158    end #micropost associations end
+
+3 matches in 1 file

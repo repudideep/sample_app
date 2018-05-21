@@ -37,6 +37,14 @@ describe User do
   it { should be_valid }
   it { should_not be_admin }
 
+  it { should respond_to(:feed) }
+  it { should respond_to(:relationships) }
+  it { should respond_to(:followed_users)}
+  it { should respond_to(:following?) }
+  it { should respond_to(:follow!) }
+  it { should respond_to(:reverse_relationships) }
+  it { should respond_to(:followers) }
+
   describe "with admin attribute set to 'true'" do
     before do
       @user.save!
@@ -151,10 +159,75 @@ describe "micropost associations" do
         FactoryGirl.create(:micropost, user: FactoryGirl.create(:user))
       end
 
+      it 'includes newer_micropost' do
+      expect( subject.feed ).to include(newer_micropost)
+      end 
+      
+      it 'includes older_micropost' do
+      expect( subject.feed ).to include(older_micropost)
+      end
+
+      it 'does not include unfollowed_post' do
+      expect( subject.feed ).not_to include(unfollowed_post)
+    end
+      # its(:feed) { should include(newer_micropost) }
+      # its(:feed) { should include(older_micropost) }
+      # its(:feed) { should_not include(unfollowed_post) }
+        describe "status" do
+      let(:unfollowed_post) do
+        FactoryGirl.create(:micropost, user: FactoryGirl.create(:user))
+      end
+      let(:followed_user) { FactoryGirl.create(:user) }
+
+      before do
+        @user.follow!(followed_user)
+        3.times { followed_user.microposts.create!(content: "Lorem ipsum") }
+      end
+
       its(:feed) { should include(newer_micropost) }
       its(:feed) { should include(older_micropost) }
       its(:feed) { should_not include(unfollowed_post) }
+      its(:feed) do
+        followed_user.microposts.each do |micropost|
+          should include(micropost)
+        end
+      end
+    end
+
     end
   end #micropost associations end
 
+  describe "following" do
+    let(:other_user) { FactoryGirl.create(:user) }
+    before do
+      @user.save
+      @user.follow!(other_user)
+    end
+
+    it { should be_following(other_user) }
+    it 'inlcude other_user' do
+      expect(subject.followed_users).to include(other_user)
+    end
+
+    describe "and unfollowing" do
+      before { @user.unfollow!(other_user) }
+
+      it { should_not be_following(other_user) }
+      it 'should not inlcude other_users' do
+        expect(subject.followed_users).to_not include(other_user)
+      end
+    
+        it { should be_following(other_user) }
+      it 'should include other user' do
+        expect(subject.followed_users).to include(other_user)
+      end
+    end
+
+    describe "followed user" do
+      subject { other_user }
+      it 'include user' do
+        expect(subject.followers).to include(@user)
+      end
+    end
+  end
 end
